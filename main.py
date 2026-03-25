@@ -14,7 +14,6 @@ def get_base_path():
     if hasattr(sys, '_MEIPASS'):
         return sys._MEIPASS  # PyInstaller temp folder
     return os.path.dirname(os.path.abspath(__file__))
-
 def run_mediamtx():
     """Start MediaMTX server with its YAML config and print logs."""
     base_dir = get_base_path()
@@ -28,12 +27,12 @@ def run_mediamtx():
         raise FileNotFoundError(f"Config file not found at {config_path}")
 
     process = subprocess.Popen(
-        [exe_path, config_path],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
-    )
-
+    [exe_path, config_path],
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    text=True,
+    creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW
+)
     print(f"MediaMTX started with PID {process.pid}")
 
     def print_logs():
@@ -42,33 +41,6 @@ def run_mediamtx():
 
     threading.Thread(target=print_logs, daemon=True).start()
     return process
-    """Start MediaMTX server with its YAML config and print logs."""
-    base_dir = os.path.dirname(__file__)
-    exe_path = os.path.join(base_dir, "mediamtx", "mediamtx.exe")
-    config_path = os.path.join(base_dir, "mediamtx", "mediamtx.yml")
-
-    if not os.path.exists(exe_path):
-        raise FileNotFoundError(f"MediaMTX not found at {exe_path}")
-    if not os.path.exists(config_path):
-        raise FileNotFoundError(f"Config file not found at {config_path}")
-
-    # Run MediaMTX and capture stdout
-    process = subprocess.Popen(
-        [exe_path, config_path],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
-    )
-    print(f"MediaMTX started with PID {process.pid}")
-
-    # Thread to print logs in real-time
-    def print_logs():
-        for line in process.stdout:
-            print(line, end="")
-
-    threading.Thread(target=print_logs, daemon=True).start()
-    return process
-
 
 if __name__ == "__main__":
     # 1. Start MediaMTX
